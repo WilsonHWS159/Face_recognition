@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -54,242 +55,11 @@ class _BluetoothPageState extends State<BluetoothPage> {
     widget.flutterBlue.startScan(timeout: Duration(seconds: 4));
   }
 
-
-  ListView _buildView() {
-    if (_connectedDevice != null) {
-      return _buildConnectDeviceView();
-    }
-    return _buildListViewOfDevices();
-  }
-
-  ListView _buildListViewOfDevices() {
-
-    List<Container> containers = new List<Container>.empty(growable: true);
-    for (BluetoothDevice device in widget.devicesList) {
-      containers.add(
-        Container(
-          height: 50,
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  children: <Widget>[
-                    Text(device.name == '' ? '(unknown device)' : device.name),
-                    Text(device.id.toString()),
-                  ],
-                ),
-              ),
-              if (device == _connectingDevice)
-                Text(
-                  '$_state',
-                  style: TextStyle(color: Colors.blue),
-                )
-              else
-                TextButton(
-                  child: Text(
-                    'Connect'
-                  ),
-                  onPressed: () async {
-                    widget.flutterBlue.stopScan();
-
-
-                    setState(() {
-                      _state = BluetoothDeviceState.disconnected;
-                      _connectingDevice = device;
-                    });
-
-                    device.state.listen((event) {
-                      setState(() {
-                        _state = event;
-                      });
-                    });
-
-                    await device.connect();
-
-                    _services = await device.discoverServices();
-
-                    setState(() {
-                      _connectingDevice = null;
-                      _connectedDevice = device;
-                    });
-                  },
-                ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return ListView(
-      padding: const EdgeInsets.all(8),
-      children: <Widget>[
-        ...containers,
-      ],
-    );
-  }
-
-
-  ListView _buildConnectDeviceView() {
-    List<Container> containers = new List<Container>.empty(growable: true);
-
-    for (BluetoothService service in _services) {
-      List<Widget> characteristicsWidget = new List<Widget>.empty(growable: true);
-      for (BluetoothCharacteristic characteristic in service.characteristics) {
-        characteristic.value.listen((value) {
-          print(value);
-        });
-        characteristicsWidget.add(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Column(
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Text(characteristic.uuid.toString(),
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    ..._buildReadWriteNotifyButton(characteristic),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Text('Value: ' +
-                        widget.readValues[characteristic.uuid].toString()),
-                  ],
-                ),
-                Divider(),
-              ],
-            ),
-          ),
-        );
-      }
-      containers.add(
-        Container(
-          child: ExpansionTile(
-              title: Text(service.uuid.toString()),
-              children: characteristicsWidget),
-        ),
-      );
-    }
-
-    return ListView(
-      padding: const EdgeInsets.all(8),
-      children: <Widget>[
-        ...containers,
-      ],
-    );
-  }
-
-  List<ButtonTheme> _buildReadWriteNotifyButton(BluetoothCharacteristic characteristic) {
-    List<ButtonTheme> buttons = new List<ButtonTheme>.empty(growable: true);
-
-    if (characteristic.properties.read) {
-      buttons.add(
-        ButtonTheme(
-          minWidth: 10,
-          height: 20,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: ElevatedButton(
-              child: Text('READ' ),
-              onPressed: () async {
-                var sub = characteristic.value.listen((value) {
-                  setState(() {
-                    widget.readValues[characteristic.uuid] = value;
-                  });
-                });
-                await characteristic.read();
-                sub.cancel();
-              },
-            ),
-          ),
-        ),
-      );
-    }
-    if (characteristic.properties.write) {
-      buttons.add(
-        ButtonTheme(
-          minWidth: 10,
-          height: 20,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: ElevatedButton(
-              child: Text('WRITE'),
-              onPressed: () async {
-                await showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text("Write"),
-                        content: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: TextField(
-                                controller: _writeController,
-                              ),
-                            ),
-                          ],
-                        ),
-                        actions: <Widget>[
-                          ElevatedButton(
-                            child: Text("Send"),
-                            onPressed: () {
-                              characteristic.write(
-                                  utf8.encode(_writeController.value.text));
-                              Navigator.pop(context);
-                            },
-                          ),
-                          ElevatedButton(
-                            child: Text("Cancel"),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ],
-                      );
-                    });
-              },
-            ),
-          ),
-        ),
-      );
-    }
-    if (characteristic.properties.notify) {
-      buttons.add(
-        ButtonTheme(
-          minWidth: 10,
-          height: 20,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: ElevatedButton(
-              child: Text('NOTIFY'),
-              onPressed: () async {
-                characteristic.value.listen((value) {
-                  setState(() {
-                    widget.readValues[characteristic.uuid] = value;
-                  });
-                });
-                await characteristic.setNotifyValue(true);
-              },
-            ),
-          ),
-        ),
-      );
-    }
-
-    return buttons;
-  }
-
-
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text("Title"),
     ),
-    // body: _buildView(),
     body: RefreshIndicator(
       onRefresh: () => FlutterBluePlus.instance.startScan(timeout: Duration(seconds: 4)),
       child: FindDevicesScreen(),
@@ -571,72 +341,181 @@ class CharacteristicTile extends StatelessWidget {
   final VoidCallback? onWritePressed;
   final VoidCallback? onNotificationPressed;
 
-  const CharacteristicTile(
+  final imgData = List<int>.empty(growable: true);
+  // Img.Image? img;
+  Uint8List? imgListData;
+
+  CharacteristicTile(
       {Key? key,
         required this.characteristic,
         required this.descriptorTiles,
         this.onReadPressed,
         this.onWritePressed,
         this.onNotificationPressed})
-      : super(key: key);
+      : super(key: key) {
+
+
+    final v = characteristic.value;
+    v.listen((event) {
+      final int index = event[0] * 256 + event[1];
+
+      imgData.addAll(event.sublist(2));
+      DateTime now = DateTime.now();
+      print("Index: $index, Time: $now");
+
+      if (index == 0) {
+        print("SUCCESS =================");
+        imageTest.imgListData = Uint8List.fromList(imgData);
+        imageTest.update();
+      }
+    });
+  }
+
+  final ImageTest imageTest = new ImageTest();
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<int>>(
-      stream: characteristic.value,
-      initialData: characteristic.lastValue,
-      builder: (c, snapshot) {
-        final value = snapshot.data;
-        return ExpansionTile(
-          title: ListTile(
-            title: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('Characteristic'),
-                Text(
-                    '0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}',
-                    style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                        color: Theme.of(context).textTheme.caption?.color))
-              ],
+    return ExpansionTile(
+      title: ListTile(
+        title: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text('Characteristic'),
+            Text(
+                '0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}',
+                style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                    color: Theme.of(context).textTheme.caption?.color))
+          ],
+        ),
+        subtitle:
+        imageTest,
+            // Text(value.toString()),
+        contentPadding: EdgeInsets.all(0.0),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (characteristic.properties.read)
+            IconButton(
+              icon: Icon(
+                Icons.file_download,
+                color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+              ),
+              onPressed: onReadPressed,
             ),
-            subtitle: Text(value.toString()),
-            contentPadding: EdgeInsets.all(0.0),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              if (characteristic.properties.read)
-                IconButton(
-                  icon: Icon(
-                    Icons.file_download,
-                    color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
-                  ),
-                  onPressed: onReadPressed,
-                ),
-              if (characteristic.properties.write)
-                IconButton(
-                  icon: Icon(Icons.file_upload,
-                      color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
-                  onPressed: onWritePressed,
-                ),
-              if (characteristic.properties.notify)
-                IconButton(
-                  icon: Icon(
-                      characteristic.isNotifying
-                          ? Icons.sync_disabled
-                          : Icons.sync,
-                      color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
-                  onPressed: onNotificationPressed,
-                )
-            ],
-          ),
-          children: descriptorTiles,
-        );
-      },
+          if (characteristic.properties.write)
+            IconButton(
+              icon: Icon(Icons.file_upload,
+                  color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
+              onPressed: onWritePressed,
+            ),
+          if (characteristic.properties.notify)
+            IconButton(
+                icon: Icon(
+                    characteristic.isNotifying
+                        ? Icons.sync_disabled
+                        : Icons.sync,
+                    color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
+                onPressed: () {
+                  imgData.clear();
+                  onNotificationPressed?.call();
+                }
+            )
+        ],
+      ),
+      children: descriptorTiles,
     );
+    // return StreamBuilder<List<int>>(
+    //   stream: characteristic.value,
+    //   initialData: characteristic.lastValue,
+    //   builder: (c, snapshot) {
+    //     return ExpansionTile(
+    //       title: ListTile(
+    //         title: Column(
+    //           mainAxisAlignment: MainAxisAlignment.center,
+    //           crossAxisAlignment: CrossAxisAlignment.start,
+    //           children: <Widget>[
+    //             Text('Characteristic'),
+    //             Text(
+    //                 '0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}',
+    //                 style: Theme.of(context).textTheme.bodyText1?.copyWith(
+    //                     color: Theme.of(context).textTheme.caption?.color))
+    //           ],
+    //         ),
+    //         subtitle: Column(mainAxisAlignment: MainAxisAlignment.center,
+    //           children: <Widget>[
+    //             // Text(value.toString()),
+    //             img == null ? Text("--") : Image.memory(imgListData!)
+    //           ],
+    //         ),
+    //         contentPadding: EdgeInsets.all(0.0),
+    //       ),
+    //       trailing: Row(
+    //         mainAxisSize: MainAxisSize.min,
+    //         children: <Widget>[
+    //           if (characteristic.properties.read)
+    //             IconButton(
+    //               icon: Icon(
+    //                 Icons.file_download,
+    //                 color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+    //               ),
+    //               onPressed: onReadPressed,
+    //             ),
+    //           if (characteristic.properties.write)
+    //             IconButton(
+    //               icon: Icon(Icons.file_upload,
+    //                   color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
+    //               onPressed: onWritePressed,
+    //             ),
+    //           if (characteristic.properties.notify)
+    //             IconButton(
+    //               icon: Icon(
+    //                   characteristic.isNotifying
+    //                       ? Icons.sync_disabled
+    //                       : Icons.sync,
+    //                   color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
+    //               onPressed: () => {
+    //                 onNotificationPressed?.call()
+    //               }
+    //             )
+    //         ],
+    //       ),
+    //       children: descriptorTiles,
+    //     );
+    //   },
+    // );
   }
 }
+
+class ImageTest extends StatefulWidget {
+  ImageTest({Key? key}) : super(key: key);
+
+  Uint8List? imgListData;
+
+  final _ImageTestState state = new _ImageTestState();
+
+  void update() {
+    state.change();
+  }
+
+  @override
+  State<ImageTest> createState() => state;
+}
+
+class _ImageTestState extends State<ImageTest> {
+  @override
+  Widget build(BuildContext context) {
+    return widget.imgListData == null ? Text("") : Image.memory(widget.imgListData!);
+  }
+
+  void change() {
+    setState(() {
+      // this.text = this.text == "original" ? "changed" : "original";
+    });
+  }
+}
+
 
 class DescriptorTile extends StatelessWidget {
   final BluetoothDescriptor descriptor;

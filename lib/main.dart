@@ -34,24 +34,24 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('First Route'),
+        title: const Text('MainPage'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // OutlinedButton(
+            //   child: Text("camera"),
+            //   onPressed: () {
+            //     Navigator.push(
+            //         context,
+            //         MaterialPageRoute(builder: (context) => TakePictureScreen(camera: camera,))
+            //     );
+            //   },
+            // ),
             OutlinedButton(
-              child: Text("camera"),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => TakePictureScreen(camera: camera,))
-                );
-              },
-            ),
-            OutlinedButton(
-              child: Text("bluetooth"),
+              child: Text("Bluetooth"),
               onPressed: () {
                 Navigator.push(
                     context,
@@ -59,6 +59,20 @@ class MainPage extends StatelessWidget {
                 );
               },
             ),
+            SizedBox(height: 24),
+            OutlinedButton(
+              child: Text("Unknown"),
+              onPressed: () {
+
+              },
+            ),
+            SizedBox(height: 24),
+            OutlinedButton(
+              child: Text("History"),
+              onPressed: () {
+
+              }
+            )
           ],
         ),
       ),
