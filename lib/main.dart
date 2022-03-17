@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
-import 'bluetoothPage.dart';
-import 'cameraPage.dart';
+import 'view/bluetoothPage.dart';
+import 'view/cameraPage.dart';
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
@@ -41,15 +41,15 @@ class MainPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // OutlinedButton(
-            //   child: Text("camera"),
-            //   onPressed: () {
-            //     Navigator.push(
-            //         context,
-            //         MaterialPageRoute(builder: (context) => TakePictureScreen(camera: camera,))
-            //     );
-            //   },
-            // ),
+            OutlinedButton(
+              child: Text("camera"),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => TakePictureScreen(camera: camera,))
+                );
+              },
+            ),
             OutlinedButton(
               child: Text("Bluetooth"),
               onPressed: () {

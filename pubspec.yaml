@@ -37,6 +37,11 @@ dependencies:
 
   flutter_blue_plus: ^1.1.1
 
+  google_ml_kit: ^0.7.3
+
+  provider:
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
