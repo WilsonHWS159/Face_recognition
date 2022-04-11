@@ -5,13 +5,21 @@ import 'package:flutter/foundation.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
 class FaceDetectModel {
+
+  bool isBusy = false;
+
   final faceDetector = GoogleMlKit.vision.faceDetector(FaceDetectorOptions(
-    enableContours: true,
-    enableClassification: true,
+    // enableTracking: true,
+    minFaceSize: 0.05,
+    mode: FaceDetectorMode.accurate
   ));
 
   Future<List<Face>> detect(InputImage inputImage) async {
-    final result = faceDetector.processImage(inputImage);
+    if (isBusy) return List.empty();
+
+    isBusy = true;
+    final result = await faceDetector.processImage(inputImage);
+    isBusy = false;
 
     return result;
   }
