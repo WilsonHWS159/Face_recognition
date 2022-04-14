@@ -10,7 +10,7 @@ class FaceDetectModel {
 
   final faceDetector = GoogleMlKit.vision.faceDetector(FaceDetectorOptions(
     // enableTracking: true,
-    minFaceSize: 0.05,
+    minFaceSize: 0.1,
     mode: FaceDetectorMode.accurate
   ));
 

@@ -85,7 +85,6 @@ class CameraViewModel extends ChangeNotifier {
   }
 
   void onOKClick(String name) {
-    print("========== On OK, name: ${name} ========");
     _showInputDialog = false;
 
     final result = _predictFace(_inputDialogImage);

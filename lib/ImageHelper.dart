@@ -8,14 +8,6 @@ import 'package:image/image.dart' as imglib;
 
 class ImageHelper {
 
-  // static List cropFace(CameraImage image, Face faceDetected) {
-  //   imglib.Image croppedImage = _cropFace(image, faceDetected);
-  //   imglib.Image img = imglib.copyResizeCropSquare(croppedImage, 112);
-  //
-  //   Float32List imageAsList = ImageHelper.imageToByteListFloat32(img);
-  //   return imageAsList;
-  // }
-
   static imglib.Image cropFace(CameraImage image, Face faceDetected) {
     imglib.Image convertedImage = convertCameraImage(image);
     double x = faceDetected.boundingBox.left - 10.0;
@@ -134,7 +126,9 @@ class ImageHelper {
     for (int x = 0; x < width; x++) { // Fill image buffer with plane[0] from YUV420_888
       for (int y = 0; y < height; y++) {
         final int uvIndex = uvPixelStride * (x / 2).floor() + uvRowStride * (y / 2).floor();
-        final int index = y * uvRowStride + x; // Use the row stride instead of the image width as some devices pad the image data, and in those cases the image width != bytesPerRow. Using width will give you a distored image.
+        // Use the row stride instead of the image width as some devices pad the image data,
+        // and in those cases the image width != bytesPerRow. Using width will give you a destroyed image.
+        final int index = y * uvRowStride + x;
         final yp = image.planes[0].bytes[index];
         final up = image.planes[1].bytes[uvIndex];
         final vp = image.planes[2].bytes[uvIndex];

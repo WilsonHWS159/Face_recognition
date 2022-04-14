@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
-import 'bluetoothPage.dart';
-import 'camera/cameraPage.dart';
+import 'view/bluetoothPage.dart';
+import 'view/camera/cameraPage.dart';
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
