@@ -50,6 +50,8 @@ class CameraViewModel extends ChangeNotifier {
     });
 
     _mlModel.initialize();
+
+    _detectedDB.loadData();
   }
 
   void startStreaming() {
@@ -90,7 +92,7 @@ class CameraViewModel extends ChangeNotifier {
     final result = _predictFace(_inputDialogImage);
 
     if (result != null) {
-      _detectedDB.addPerson(result, name);
+      _detectedDB.addPerson(result, name, _inputDialogImage);
     }
 
     notifyListeners();

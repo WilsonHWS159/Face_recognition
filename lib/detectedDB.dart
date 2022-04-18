@@ -1,19 +1,25 @@
 
 
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:math';
+import 'dart:typed_data';
 
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:face_recognize/fileRepo.dart';
+
+import 'package:image/image.dart' as imglib;
+
 
 class PersonData {
   List featureVector;
   String name;
+  String imagePath;
   // Face? face;
 
   String _uid;
   String get uid => _uid;
 
-  PersonData(this.featureVector, this.name, this._uid);
+  PersonData(this.featureVector, this.name, this.imagePath, this._uid);
 
 }
 
@@ -22,10 +28,53 @@ class DetectedDB {
 
   List<PersonData> historyPersonList = List.empty(growable: true);
 
-  void addPerson(List data, String name) {
-    final newData = PersonData(data, name, name);
+  Future<void> loadData() async {
+    final dataStr = await FileRepo().readFile("saved_data");
+    List<dynamic> dataJson = json.decode(dataStr);
+
+    for (final data in dataJson) {
+      final name = data["name"] as String;
+      final featureVector = data["featureVector"] as List;
+      final path = data["imagePath"] as String;
+
+      final person = PersonData(featureVector, name, path, "123");
+
+      historyPersonList.add(person);
+
+      print("load from db, path: ${path}");
+
+    }
+
+    print("load from db, total: ${historyPersonList.length}");
+
+  }
+
+  void addPerson(List data, String name, imglib.Image image) {
+
+    final path = "image_$name";
+
+    FileRepo().writeFileAsBytes(path, imglib.encodePng(image) as Uint8List);
+
+    final newData = PersonData(data, name, path, name);
 
     historyPersonList.add(newData);
+
+    // FileIma
+
+    List<Map<String, dynamic>> dataJson = List.empty(growable: true);
+    for (final person in historyPersonList) {
+      dataJson.add({
+        "name": person.name,
+        "featureVector": person.featureVector,
+        "imagePath": person.imagePath
+      });
+    }
+
+    final dataStr = json.encode(dataJson);
+
+    print("save str: $dataStr");
+
+    FileRepo().writeFile("saved_data", dataStr);
   }
 
   PersonData? findClosestFace(List data) {

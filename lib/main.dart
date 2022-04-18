@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:face_recognize/view/history/historyPage.dart';
 import 'package:flutter/material.dart';
 
 import 'view/bluetoothPage.dart';
@@ -70,7 +71,10 @@ class MainPage extends StatelessWidget {
             OutlinedButton(
               child: Text("History"),
               onPressed: () {
-
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HistoryPage())
+                );
               }
             )
           ],
