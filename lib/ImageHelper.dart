@@ -10,15 +10,15 @@ class ImageHelper {
 
   static imglib.Image cropFace(CameraImage image, Face faceDetected) {
     imglib.Image convertedImage = convertCameraImage(image);
-    double x = faceDetected.boundingBox.left - 10.0;
-    double y = faceDetected.boundingBox.top - 10.0;
-    double w = faceDetected.boundingBox.width + 10.0;
-    double h = faceDetected.boundingBox.height + 10.0;
+    double xExpand = faceDetected.boundingBox.width * 0.1;
+    double yExpand = faceDetected.boundingBox.height * 0.1;
+    double x = faceDetected.boundingBox.left - xExpand;
+    double y = faceDetected.boundingBox.top - yExpand;
+    double w = faceDetected.boundingBox.width + xExpand * 2;
+    double h = faceDetected.boundingBox.height + yExpand * 2;
 
     final croppedImage = imglib.copyCrop(convertedImage, x.round(), y.round(), w.round(), h.round());
     return imglib.copyResizeCropSquare(croppedImage, 112);
-    // imglib.Image resizedImage = imglib.copyResizeCropSquare(image, 112);
-    // return imglib.copyCrop(convertedImage, x.round(), y.round(), w.round(), h.round());
   }
 
   static imglib.Image convertCameraImage(CameraImage image) {

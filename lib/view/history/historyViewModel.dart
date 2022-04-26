@@ -1,20 +1,25 @@
 
 
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:face_recognize/detectedDB.dart';
 import 'package:face_recognize/fileRepo.dart';
 import 'package:flutter/foundation.dart';
 
-import 'package:image/image.dart' as imglib;
-
 
 class HistoryViewData {
   String name;
-  Uint8List image;
+  String note;
+  List<HistoryViewSubData> subData;
 
-  HistoryViewData(this.name, this.image);
+  HistoryViewData(this.name, this.note, this.subData);
+}
+
+class HistoryViewSubData {
+  Uint8List image;
+  DateTime date;
+
+  HistoryViewSubData(this.image, this.date);
 }
 
 class HistoryViewModel extends ChangeNotifier {
@@ -31,18 +36,60 @@ class HistoryViewModel extends ChangeNotifier {
   void load() async {
     await _detectedDB.loadData();
 
+    await _updateData();
+
+    notifyListeners();
+  }
+
+  void delete(String name) async {
+    _detectedDB.deletePerson(name);
+
+    await _updateData();
+
+    notifyListeners();
+  }
+
+  void deleteSubData(String name, DateTime date) async {
+    _detectedDB.deletePersonSubImage(name, date);
+
+    await _updateData();
+
+    notifyListeners();
+  }
+
+  void updateNote(String name, String newNote) async {
+    _detectedDB.updatePersonNote(name, newNote);
+
+    await _updateData();
+
+    notifyListeners();
+  }
+
+  Future _updateData() async {
+    data.clear();
+
     final fileRepo = FileRepo();
 
     for (final historyData in _detectedDB.historyPersonList) {
 
+      List<HistoryViewSubData> subData = List.empty(growable: true);
+      for (final feature in historyData.features) {
+        subData.add(
+          HistoryViewSubData(
+              await fileRepo.readFileAsBytes(feature.imagePath),
+              feature.date
+          )
+        );
+          // images.add(await fileRepo.readFileAsBytes(feature.imagePath));
+      }
+
       final viewData = HistoryViewData(
           historyData.name,
-          await fileRepo.readFileAsBytes(historyData.imagePath)
+          historyData.note,
+          subData
       );
 
       data.add(viewData);
     }
-
-    notifyListeners();
   }
 }

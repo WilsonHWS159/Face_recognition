@@ -79,61 +79,8 @@ class MLModel {
 
   }
 
-  // Future<User> predict() async {
-  //   return _searchResult(this._predictedData);
-  // }
-
-
-  List _preProcess(imglib.Image image) {//}, Face faceDetected) {
-    // imglib.Image croppedImage = ImageHelper.cropFace(image, faceDetected);
-    // imglib.Image resizedImage = imglib.copyResizeCropSquare(image, 112);
-
+  List _preProcess(imglib.Image image) {
     Float32List imageAsList = ImageHelper.imageToByteListFloat32(image);
     return imageAsList;
-  }
-  //
-  // imglib.Image _cropFace(CameraImage image, Face faceDetected) {
-  //   imglib.Image convertedImage = ImageHelper.convertCameraImage(image);
-  //   double x = faceDetected.boundingBox.left - 10.0;
-  //   double y = faceDetected.boundingBox.top - 10.0;
-  //   double w = faceDetected.boundingBox.width + 10.0;
-  //   double h = faceDetected.boundingBox.height + 10.0;
-  //   return imglib.copyCrop(convertedImage, x.round(), y.round(), w.round(), h.round());
-  // }
-
-
-  // Future<User> _searchResult(List predictedData) async {
-  //   DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  //
-  //   List<User> users = await _dbHelper.queryAllUsers();
-  //   double minDist = 999;
-  //   double currDist = 0.0;
-  //   User predictedResult;
-  //
-  //   for (User u in users) {
-  //     currDist = _euclideanDistance(u.modelData, predictedData);
-  //     if (currDist <= threshold && currDist < minDist) {
-  //       minDist = currDist;
-  //       predictedResult = u;
-  //     }
-  //   }
-  //   return predictedResult;
-  // }
-
-  // double _euclideanDistance(List e1, List e2) {
-  //
-  //   double sum = 0.0;
-  //   for (int i = 0; i < e1.length; i++) {
-  //     sum += pow((e1[i] - e2[i]), 2);
-  //   }
-  //   return sqrt(sum);
-  // }
-
-  // void setPredictedData(value) {
-  //   this._predictedData = value;
-  // }
-
-  dispose() {
-    _interpreter.close();
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:face_recognize/fileRepo.dart';
 import 'package:face_recognize/view/history/historyPage.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +19,8 @@ Future<void> main() async {
 
   // Get a specific camera from the list of available cameras.
   final firstCamera = cameras.first;
+
+  FileRepo().createFolder("image");
 
   runApp(
       MaterialApp(
@@ -51,22 +54,22 @@ class MainPage extends StatelessWidget {
                 );
               },
             ),
-            OutlinedButton(
-              child: Text("Bluetooth"),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => BluetoothPage())
-                );
-              },
-            ),
-            SizedBox(height: 24),
-            OutlinedButton(
-              child: Text("Unknown"),
-              onPressed: () {
-
-              },
-            ),
+            // OutlinedButton(
+            //   child: Text("Bluetooth"),
+            //   onPressed: () {
+            //     Navigator.push(
+            //         context,
+            //         MaterialPageRoute(builder: (context) => BluetoothPage())
+            //     );
+            //   },
+            // ),
+            // SizedBox(height: 24),
+            // OutlinedButton(
+            //   child: Text("Unknown"),
+            //   onPressed: () {
+            //
+            //   },
+            // ),
             SizedBox(height: 24),
             OutlinedButton(
               child: Text("History"),

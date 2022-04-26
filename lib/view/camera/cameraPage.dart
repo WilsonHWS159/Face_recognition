@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
@@ -52,10 +50,13 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         CameraPreview(vm.cameraController),
         if (vm.painter != null) CustomPaint(painter: vm.painter),
         if (vm.showInputDialog) AlertDialog(
-          title: const Text('AlertDialog Title'),
-          content: Column(
+          content: ListView(
             children: [
-              Image.memory(imglib.encodePng(vm.inputDialogImage) as Uint8List),
+              Image.memory(
+                imglib.encodePng(vm.inputDialogImage) as Uint8List,
+                height: 64,
+                width: 64,
+              ),
               TextField(
                 onChanged: (s) => text = s,
               )
@@ -101,21 +102,3 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     );
   }
 }
-
-// A widget that displays the picture taken by the user.
-// class DisplayPictureScreen extends StatelessWidget {
-//   final String imagePath;
-//
-//   const DisplayPictureScreen({Key? key, required this.imagePath})
-//       : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Display the Picture')),
-//       // The image is stored as a file on the device. Use the `Image.file`
-//       // constructor with the given path to display the image.
-//       body: Image.file(File(imagePath)),
-//     );
-//   }
-// }

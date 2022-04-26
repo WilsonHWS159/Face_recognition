@@ -56,19 +56,7 @@ class CameraViewModel extends ChangeNotifier {
 
   void startStreaming() {
     cameraController.startImageStream((image) {
-      // if (_detecting == null) {
-      //   _detecting = _onImageAvailable(image);
-      //   _detecting?.then((value) => _detecting = null);
-      // }
       _onImageAvailable(image);
-
-      // imageData = image.planes[0].bytes;
-
-
-
-      // cameraController.stopImageStream();
-      // print("Streaming... ${imageData}");
-      // notifyListeners();
     });
   }
 
@@ -100,7 +88,6 @@ class CameraViewModel extends ChangeNotifier {
 
   void dispose() {
     _faceDetectModel.dispose();
-    _mlModel.dispose();
     cameraController.dispose();
 
     super.dispose();

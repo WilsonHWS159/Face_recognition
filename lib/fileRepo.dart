@@ -13,6 +13,17 @@ class FileRepo {
     return directory.path;
   }
 
+  Future<void> createFolder(String dir) async {
+    final path = await _localPath;
+    final directory = Directory("$path/$dir");
+
+    if (await directory.exists()) {
+      return;
+    }
+
+    await directory.create();
+  }
+
   Future<File> getFile(String dir) async {
     final path = await _localPath;
     return File('$path/$dir');

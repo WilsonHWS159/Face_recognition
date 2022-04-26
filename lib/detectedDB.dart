@@ -5,21 +5,30 @@ import 'dart:ffi';
 import 'dart:math';
 import 'dart:typed_data';
 
+
 import 'package:face_recognize/fileRepo.dart';
 
 import 'package:image/image.dart' as imglib;
+import 'package:intl/intl.dart';
 
+
+class ImageAndFeature {
+  String imagePath;
+  DateTime date;
+  List featureVector;
+
+  ImageAndFeature(this.imagePath, this.date, this.featureVector);
+}
 
 class PersonData {
-  List featureVector;
   String name;
-  String imagePath;
-  // Face? face;
+  String note;
+  List<ImageAndFeature> features;
 
   String _uid;
   String get uid => _uid;
 
-  PersonData(this.featureVector, this.name, this.imagePath, this._uid);
+  PersonData(this.name, this.note, this.features, this._uid);
 
 }
 
@@ -29,19 +38,29 @@ class DetectedDB {
   List<PersonData> historyPersonList = List.empty(growable: true);
 
   Future<void> loadData() async {
-    final dataStr = await FileRepo().readFile("saved_data");
+    final dataStr = await FileRepo().readFile("saved_data.json");
     List<dynamic> dataJson = json.decode(dataStr);
 
     for (final data in dataJson) {
-      final name = data["name"] as String;
-      final featureVector = data["featureVector"] as List;
-      final path = data["imagePath"] as String;
+      String name = data["name"];
+      String note = data["note"];
+      List<dynamic> featureJson = data["features"];
 
-      final person = PersonData(featureVector, name, path, "123");
+      List<ImageAndFeature> features = List.empty(growable: true);
+
+      for (final feature in featureJson) {
+        String path = feature["imagePath"];
+        List vector = feature["featureVector"];
+        DateTime date = DateTime.fromMillisecondsSinceEpoch(feature["date"]);
+
+        features.add(ImageAndFeature(path, date, vector));
+      }
+
+      final person = PersonData(name, note, features, "123");
 
       historyPersonList.add(person);
 
-      print("load from db, path: ${path}");
+      // print("load from db, path: ${path}");
 
     }
 
@@ -51,22 +70,77 @@ class DetectedDB {
 
   void addPerson(List data, String name, imglib.Image image) {
 
-    final path = "image_$name";
+    final now = DateTime.now();
+    final path = "image/${name}_${now.millisecondsSinceEpoch}.png";
 
     FileRepo().writeFileAsBytes(path, imglib.encodePng(image) as Uint8List);
 
-    final newData = PersonData(data, name, path, name);
+    // final newData = PersonData(data, name, path, name);
 
-    historyPersonList.add(newData);
+    // historyPersonList.add(newData);
+    bool existPerson = false;
+    for (final person in historyPersonList) {
+      if (person.name == name) {
 
-    // FileIma
+        person.features.add(ImageAndFeature(path, now, data));
 
+        existPerson = true;
+        break;
+      }
+    }
+
+    if (!existPerson) {
+      historyPersonList.add(
+        PersonData(name, "note", List.of([ImageAndFeature(path, now, data)]), "123")
+      );
+    }
+
+    _save();
+  }
+
+  void deletePerson(String name) {
+    historyPersonList.removeWhere((element) => element.name == name);
+
+    _save();
+  }
+
+  void deletePersonSubImage(String name, DateTime date) {
+    for (var person in historyPersonList) {
+      person.features.removeWhere((element) =>
+        person.name == name && element.date == date
+      );
+    }
+
+    historyPersonList.removeWhere((element) => element.features.isEmpty);
+
+    _save();
+  }
+  void updatePersonNote(String name, String newNote) {
+    for (var person in historyPersonList) {
+      if (person.name == name) {
+        person.note = newNote;
+        break;
+      }
+    }
+
+    _save();
+  }
+
+  void _save() {
     List<Map<String, dynamic>> dataJson = List.empty(growable: true);
     for (final person in historyPersonList) {
+      List<dynamic> featureJson = List.empty(growable: true);
+      for (final feature in person.features) {
+        featureJson.add({
+          "imagePath": feature.imagePath,
+          "date": feature.date.millisecondsSinceEpoch,
+          "featureVector": feature.featureVector
+        });
+      }
       dataJson.add({
         "name": person.name,
-        "featureVector": person.featureVector,
-        "imagePath": person.imagePath
+        "note": person.note,
+        "features": featureJson
       });
     }
 
@@ -74,7 +148,7 @@ class DetectedDB {
 
     print("save str: $dataStr");
 
-    FileRepo().writeFile("saved_data", dataStr);
+    FileRepo().writeFile("saved_data.json", dataStr);
   }
 
   PersonData? findClosestFace(List data) {
@@ -83,10 +157,12 @@ class DetectedDB {
     PersonData? predictedResult;
 
     for (final history in historyPersonList) {
-      currDist = _euclideanDistance(history.featureVector, data);
-      if (currDist <= THRESHOLD && currDist < minDist) {
-        minDist = currDist;
-        predictedResult = history;
+      for (final feature in history.features) {
+        currDist = _euclideanDistance(feature.featureVector, data);
+        if (currDist <= THRESHOLD && currDist < minDist) {
+          minDist = currDist;
+          predictedResult = history;
+        }
       }
     }
 
