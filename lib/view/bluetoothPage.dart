@@ -365,13 +365,22 @@ class CharacteristicTile extends StatelessWidget {
 
       if (index == 0) {
         print("SUCCESS =================");
-        imageTest.imgListData = Uint8List.fromList(imgData);
-        imageTest.update();
+
+        if ('0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}' == "0x2A1A") {
+          textTest.data = Uint8List.fromList(imgData);
+          textTest.update();
+        } else {
+          imageTest.imgListData = Uint8List.fromList(imgData);
+          imageTest.update();
+        }
+
+
       }
     });
   }
 
   final ImageTest imageTest = new ImageTest();
+  final TextTest textTest = new TextTest();
 
   @override
   Widget build(BuildContext context) {
@@ -388,7 +397,7 @@ class CharacteristicTile extends StatelessWidget {
                     color: Theme.of(context).textTheme.caption?.color))
           ],
         ),
-        subtitle:
+        subtitle: '0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}' == "0x2A1A" ? textTest :
         imageTest,
             // Text(value.toString()),
         contentPadding: EdgeInsets.all(0.0),
@@ -515,6 +524,37 @@ class _ImageTestState extends State<ImageTest> {
     });
   }
 }
+
+class TextTest extends StatefulWidget {
+  TextTest({Key? key}) : super(key: key);
+
+  Uint8List? data;
+
+  final _TextTestState state = new _TextTestState();
+
+
+  void update() {
+    state.change();
+  }
+
+  @override
+  State<TextTest> createState() => state;
+}
+
+class _TextTestState extends State<TextTest> {
+  @override
+  Widget build(BuildContext context) {
+    return widget.data == null ? Text("") : Text(String.fromCharCodes(widget.data!));
+  }
+
+  void change() {
+    setState(() {
+      // this.text = this.text == "original" ? "changed" : "original";
+    });
+  }
+}
+
+
 
 
 class DescriptorTile extends StatelessWidget {

@@ -54,22 +54,22 @@ class MainPage extends StatelessWidget {
                 );
               },
             ),
-            // OutlinedButton(
-            //   child: Text("Bluetooth"),
-            //   onPressed: () {
-            //     Navigator.push(
-            //         context,
-            //         MaterialPageRoute(builder: (context) => BluetoothPage())
-            //     );
-            //   },
-            // ),
-            // SizedBox(height: 24),
-            // OutlinedButton(
-            //   child: Text("Unknown"),
-            //   onPressed: () {
-            //
-            //   },
-            // ),
+            OutlinedButton(
+              child: Text("Bluetooth"),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => BluetoothPage())
+                );
+              },
+            ),
+            SizedBox(height: 24),
+            OutlinedButton(
+              child: Text("Unknown"),
+              onPressed: () {
+
+              },
+            ),
             SizedBox(height: 24),
             OutlinedButton(
               child: Text("History"),
