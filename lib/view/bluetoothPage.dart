@@ -171,8 +171,8 @@ class DeviceScreen extends StatelessWidget {
               (c) => CharacteristicTile(
             characteristic: c,
             onReadPressed: () => c.read(),
-            onWritePressed: () {
-              c.write(utf8.encode("HI"));
+            onWritePressed: (str) {
+              c.write(utf8.encode(str));
             },
             onNotificationPressed: () {
               c.setNotifyValue(true);
@@ -338,7 +338,7 @@ class CharacteristicTile extends StatelessWidget {
   final BluetoothCharacteristic characteristic;
   final List<DescriptorTile> descriptorTiles;
   final VoidCallback? onReadPressed;
-  final VoidCallback? onWritePressed;
+  final Function(String)? onWritePressed;
   final VoidCallback? onNotificationPressed;
 
   final imgData = List<int>.empty(growable: true);
@@ -382,6 +382,8 @@ class CharacteristicTile extends StatelessWidget {
   final ImageTest imageTest = new ImageTest();
   final TextTest textTest = new TextTest();
 
+  String write = "";
+
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
@@ -414,10 +416,21 @@ class CharacteristicTile extends StatelessWidget {
               onPressed: onReadPressed,
             ),
           if (characteristic.properties.write)
-            IconButton(
-              icon: Icon(Icons.file_upload,
-                  color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
-              onPressed: onWritePressed,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60.0,
+                  child: TextField(
+                    onChanged: (s) => write = s
+                  )
+                ),
+                IconButton(
+                  icon: Icon(Icons.file_upload,
+                      color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
+                  onPressed: () => onWritePressed?.call(write),
+                ),
+              ],
             ),
           if (characteristic.properties.notify)
             IconButton(
