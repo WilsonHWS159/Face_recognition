@@ -357,30 +357,36 @@ class CharacteristicTile extends StatelessWidget {
 
     final v = characteristic.value;
     v.listen((event) {
-      final int index = event[0] * 256 + event[1];
+      if (characteristic.properties.read) {
+        textTest.data = Uint8List.fromList(event);
+        textTest.update();
+      } else {
+        final int index = event[0] * 256 + event[1];
 
-      imgData.addAll(event.sublist(2));
-      DateTime now = DateTime.now();
-      print("Index: $index, Time: $now");
+        imgData.addAll(event.sublist(2));
+        DateTime now = DateTime.now();
+        print("Index: $index, Time: $now");
 
-      if (index == 0) {
-        print("SUCCESS =================");
+        if (index == 0) {
+          print("SUCCESS =================");
 
-        if ('0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}' == "0x2A1A") {
-          textTest.data = Uint8List.fromList(imgData);
-          textTest.update();
-        } else {
-          imageTest.imgListData = Uint8List.fromList(imgData);
-          imageTest.update();
+          if ('0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}' == "0x2A1A") {
+            textTest.data = Uint8List.fromList(imgData);
+            textTest.update();
+          } else {
+            imageTest.imgListData = Uint8List.fromList(imgData);
+            imageTest.update();
+          }
+
+
         }
-
-
       }
     });
   }
 
   final ImageTest imageTest = new ImageTest();
   final TextTest textTest = new TextTest();
+  String readValue = "";
 
   String write = "";
 
@@ -399,8 +405,7 @@ class CharacteristicTile extends StatelessWidget {
                     color: Theme.of(context).textTheme.caption?.color))
           ],
         ),
-        subtitle: '0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}' == "0x2A1A" ? textTest :
-        imageTest,
+        subtitle: '0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}' == "0x2A1A" || characteristic.properties.read ? textTest : imageTest,
             // Text(value.toString()),
         contentPadding: EdgeInsets.all(0.0),
       ),
