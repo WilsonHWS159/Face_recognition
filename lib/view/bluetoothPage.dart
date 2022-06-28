@@ -7,14 +7,16 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'package:flutter/material.dart';
 
+import '../bleModel.dart';
+
 
 class BluetoothPage extends StatefulWidget {
   BluetoothPage({Key? key}) : super(key: key);
 
-  final FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
-  final List<BluetoothDevice> devicesList = new List<BluetoothDevice>.empty(growable: true);
+  // final FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
+  // final List<BluetoothDevice> devicesList = new List<BluetoothDevice>.empty(growable: true);
 
-  final Map<Guid, List<int>> readValues = new Map<Guid, List<int>>();
+  // final Map<Guid, List<int>> readValues = new Map<Guid, List<int>>();
 
   @override
   _BluetoothPageState createState() => _BluetoothPageState();
@@ -23,62 +25,65 @@ class BluetoothPage extends StatefulWidget {
 
 
 class _BluetoothPageState extends State<BluetoothPage> {
-  final _writeController = TextEditingController();
-  BluetoothDevice? _connectingDevice;
-  BluetoothDeviceState? _state;
-  BluetoothDevice? _connectedDevice;
-  List<BluetoothService> _services = new List<BluetoothService>.empty(growable: true);
+  // final _writeController = TextEditingController();
+  // BluetoothDevice? _connectingDevice;
+  // BluetoothDeviceState? _state;
+  // BluetoothDevice? _connectedDevice;
+  // List<BluetoothService> _services = new List<BluetoothService>.empty(growable: true);
 
-  void _addDeviceToList(final BluetoothDevice device) {
-    if (!widget.devicesList.contains(device) && device.name != '') {
-      setState(() {
-        widget.devicesList.add(device);
-      });
-    }
-  }
+  // void _addDeviceToList(final BluetoothDevice device) {
+  //   if (!widget.devicesList.contains(device) && device.name != '') {
+  //     setState(() {
+  //       widget.devicesList.add(device);
+  //     });
+  //   }
+  // }
 
   @override
   void initState() {
     super.initState();
-    widget.flutterBlue.connectedDevices
-        .asStream()
-        .listen((List<BluetoothDevice> devices) {
-      for (BluetoothDevice device in devices) {
-        _addDeviceToList(device);
-      }
-    });
-    widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
-      for (ScanResult result in results) {
-        _addDeviceToList(result.device);
-      }
-    });
-    widget.flutterBlue.startScan(timeout: Duration(seconds: 4));
+
+    // BLEModel.getConnectedDevice()
+    //     .asStream()
+    //     .listen((devices) {
+    //   for (BluetoothDevice device in devices) {
+    //     _addDeviceToList(device);
+    //   }
+    // });
+    //
+    // BLEModel.getScanResult().listen((results) {
+    //   for (ScanResult result in results) {
+    //     _addDeviceToList(result.device);
+    //   }
+    // });
+
+    BLEModel.startScan();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text("Title"),
+      title: Text("BLE Test Page"),
     ),
     body: RefreshIndicator(
-      onRefresh: () => FlutterBluePlus.instance.startScan(timeout: Duration(seconds: 4)),
+      onRefresh: () => BLEModel.startScan(), //FlutterBluePlus.instance.startScan(timeout: Duration(seconds: 4)),
       child: FindDevicesScreen(),
     ),
     floatingActionButton: StreamBuilder<bool>(
-      stream: FlutterBluePlus.instance.isScanning,
+      stream: BLEModel.isScanning(),
       initialData: false,
-      builder: (c, snapshot) {
-        if (snapshot.data!) {
+      builder: (c, isScanning) {
+        if (isScanning.data!) {
           return FloatingActionButton(
             child: Icon(Icons.stop),
-            onPressed: () => FlutterBluePlus.instance.stopScan(),
+            onPressed: () => BLEModel.stopScan(),
             backgroundColor: Colors.red,
           );
         } else {
           return FloatingActionButton(
               child: Icon(Icons.search),
-              onPressed: () => FlutterBluePlus.instance
-                  .startScan(timeout: Duration(seconds: 4)));
+              onPressed: () => BLEModel.startScan()
+          );
         }
       },
     ),
@@ -95,7 +100,7 @@ class FindDevicesScreen extends StatelessWidget {
           children: <Widget>[
             StreamBuilder<List<BluetoothDevice>>(
               stream: Stream.periodic(Duration(seconds: 2))
-                  .asyncMap((_) => FlutterBluePlus.instance.connectedDevices),
+                  .asyncMap((_) => BLEModel.getConnectedDevice()), // FlutterBluePlus.instance.connectedDevices),
               initialData: [],
               builder: (c, snapshot) => Column(
                 children: snapshot.data!.map((d) => ListTile(
@@ -122,7 +127,7 @@ class FindDevicesScreen extends StatelessWidget {
               ),
             ),
             StreamBuilder<List<ScanResult>>(
-              stream: FlutterBluePlus.instance.scanResults,
+              stream: BLEModel.getScanResult(),// FlutterBluePlus.instance.scanResults,
               initialData: [],
               builder: (c, snapshot) => Column(
                 children: snapshot.data!.map((d) => ScanResultTile(
@@ -453,65 +458,6 @@ class CharacteristicTile extends StatelessWidget {
       ),
       children: descriptorTiles,
     );
-    // return StreamBuilder<List<int>>(
-    //   stream: characteristic.value,
-    //   initialData: characteristic.lastValue,
-    //   builder: (c, snapshot) {
-    //     return ExpansionTile(
-    //       title: ListTile(
-    //         title: Column(
-    //           mainAxisAlignment: MainAxisAlignment.center,
-    //           crossAxisAlignment: CrossAxisAlignment.start,
-    //           children: <Widget>[
-    //             Text('Characteristic'),
-    //             Text(
-    //                 '0x${characteristic.uuid.toString().toUpperCase().substring(4, 8)}',
-    //                 style: Theme.of(context).textTheme.bodyText1?.copyWith(
-    //                     color: Theme.of(context).textTheme.caption?.color))
-    //           ],
-    //         ),
-    //         subtitle: Column(mainAxisAlignment: MainAxisAlignment.center,
-    //           children: <Widget>[
-    //             // Text(value.toString()),
-    //             img == null ? Text("--") : Image.memory(imgListData!)
-    //           ],
-    //         ),
-    //         contentPadding: EdgeInsets.all(0.0),
-    //       ),
-    //       trailing: Row(
-    //         mainAxisSize: MainAxisSize.min,
-    //         children: <Widget>[
-    //           if (characteristic.properties.read)
-    //             IconButton(
-    //               icon: Icon(
-    //                 Icons.file_download,
-    //                 color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
-    //               ),
-    //               onPressed: onReadPressed,
-    //             ),
-    //           if (characteristic.properties.write)
-    //             IconButton(
-    //               icon: Icon(Icons.file_upload,
-    //                   color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
-    //               onPressed: onWritePressed,
-    //             ),
-    //           if (characteristic.properties.notify)
-    //             IconButton(
-    //               icon: Icon(
-    //                   characteristic.isNotifying
-    //                       ? Icons.sync_disabled
-    //                       : Icons.sync,
-    //                   color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
-    //               onPressed: () => {
-    //                 onNotificationPressed?.call()
-    //               }
-    //             )
-    //         ],
-    //       ),
-    //       children: descriptorTiles,
-    //     );
-    //   },
-    // );
   }
 }
 

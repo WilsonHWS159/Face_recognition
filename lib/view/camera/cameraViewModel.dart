@@ -6,6 +6,7 @@ import 'package:face_recognize/mlModel.dart';
 import 'package:face_recognize/view/camera/faceDetectorPainter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
 import '../../detectedDB.dart';
@@ -36,6 +37,8 @@ class CameraViewModel extends ChangeNotifier {
   imglib.Image get inputDialogImage => _inputDialogImage;
 
 
+  FlutterTts _flutterTts = FlutterTts();
+
   // Future<void>? _detecting;
 
   CameraViewModel(this._camera) {
@@ -61,6 +64,10 @@ class CameraViewModel extends ChangeNotifier {
   }
 
   void onAddClick() {
+    // _flutterTts.speak("辨識到：邱永陞，老師的愛醬。");
+    // _flutterTts.speak("辨識到：邱子懿，最近迷上了算命。");
+
+
     if (_currentImage != null) {
       _inputDialogImage = _currentImage!;
       _showInputDialog = true;
@@ -116,6 +123,7 @@ class CameraViewModel extends ChangeNotifier {
 
       List<PaintData> paintData = List.empty(growable: true);
       paintData.add(PaintData(result.first, person?.name));
+
 
       // final paintData = result.map((e) {
       //   return PaintData(e, null);

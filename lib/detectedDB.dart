@@ -126,15 +126,16 @@ class DetectedDB {
     _save();
   }
 
-  void _save() {
+  String encodeData() {
     List<Map<String, dynamic>> dataJson = List.empty(growable: true);
     for (final person in historyPersonList) {
       List<dynamic> featureJson = List.empty(growable: true);
       for (final feature in person.features) {
+        final featureVector = feature.featureVector.map((e) => double.parse(e.toStringAsFixed(5))).toList();
         featureJson.add({
           "imagePath": feature.imagePath,
           "date": feature.date.millisecondsSinceEpoch,
-          "featureVector": feature.featureVector
+          "featureVector": featureVector
         });
       }
       dataJson.add({
@@ -144,7 +145,11 @@ class DetectedDB {
       });
     }
 
-    final dataStr = json.encode(dataJson);
+    return json.encode(dataJson);
+  }
+
+  void _save() {
+    final dataStr = encodeData();
 
     print("save str: $dataStr");
 

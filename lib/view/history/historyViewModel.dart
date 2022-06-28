@@ -1,10 +1,15 @@
 
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:face_recognize/detectedDB.dart';
 import 'package:face_recognize/fileRepo.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+
+import '../../bleModel.dart';
 
 
 class HistoryViewData {
@@ -29,8 +34,42 @@ class HistoryViewModel extends ChangeNotifier {
 
   DetectedDB _detectedDB = DetectedDB();
 
+  StreamController<bool> _deviceAllowedController = StreamController<bool>();
+
+  late Stream<bool> deviceAllowed;
+  bool _connected = false;
+
+
+  BluetoothCharacteristic? labeledCharacteristic;
+
   HistoryViewModel() {
+    deviceAllowed = _deviceAllowedController.stream.asBroadcastStream();
+
     load();
+    connect();
+  }
+
+  Future<void> connect() async {
+    final devices = await BLEModel.getConnectedDevice();
+
+    final device = devices.firstWhere((device) => device.name == "NCLAB");
+    device.requestMtu(512);
+    device.discoverServices();
+
+    _deviceAllowedController.addStream(device.state.asyncMap((event) {
+      return event == BluetoothDeviceState.connected;
+    }));
+
+    deviceAllowed.listen((event) => _connected = event);
+
+    device.services.listen((service) {
+
+      service.forEach((element) {
+        if (element.uuid.toString().toUpperCase().substring(4, 8) == '180F') {
+          labeledCharacteristic = element.characteristics.firstWhere((characteristic) => characteristic.uuid.toString().toUpperCase().substring(4, 8) == '2A18');
+        }
+      });
+    });
   }
 
   void load() async {
@@ -63,6 +102,37 @@ class HistoryViewModel extends ChangeNotifier {
     await _updateData();
 
     notifyListeners();
+  }
+
+  void sendJsonToBLEServer() async {
+    if (!_connected) {
+      print("ERROR1========");
+      return;
+    }
+
+    if (labeledCharacteristic == null) {
+      print("ERROR2========");
+      return;
+    }
+
+    final data = _detectedDB.encodeData();
+
+    final encodedData = utf8.encode(data);
+
+    final len = encodedData.length;
+    final size = 250; // TODO: use mtu size
+    final blocks = len ~/ size + 1;
+    int currentBlocks = blocks;
+    int start = 0;
+
+    while (currentBlocks > 0) {
+      print(currentBlocks);
+      final separatedData = Uint8List.fromList([currentBlocks ~/ 256, currentBlocks % 256]) + encodedData.sublist(start, start + size);
+      await labeledCharacteristic!.write(separatedData);
+
+      start += size;
+      currentBlocks -= 1;
+    }
   }
 
   Future _updateData() async {

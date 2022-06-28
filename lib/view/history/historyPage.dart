@@ -27,35 +27,58 @@ class _HistoryPageState extends State<HistoryPage> {
     
     return Padding(
       padding: EdgeInsets.all(8),
-      child: ListView.separated(
-          itemBuilder: (context, index) =>
-              ExpansionTile(
-                leading: CircleAvatar(
-                  foregroundImage: Image.memory(data[index].subData[0].image).image,
-                ),
-                title: Row(
-                  children: [
-                    Text(data[index].name),
-                    Spacer(),
-                    IconButton(
-                        onPressed: () {
-                          vm.delete(data[index].name);
-                        },
-                        icon: Icon(
-                          Icons.delete,
-                          color: Colors.blue,
+      child: Column(
+        children: [
+          StreamBuilder(
+            stream: vm.deviceAllowed,
+            initialData: false,
+            builder: (c, allowed) {
+              return Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Row(
+                      children: [
+                        Text("Connected: ${allowed.data}"),
+                        if (allowed.data == true)
+                          TextButton(
+                              onPressed: () => vm.sendJsonToBLEServer(),
+                              child: Text("Send labeled")
+                          ),
+                      ]
+                  )
+              );
+            }
+          ),
+          ListView.separated(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              itemBuilder: (context, index) =>
+                  ExpansionTile(
+                    leading: CircleAvatar(
+                      foregroundImage: Image.memory(data[index].subData[0].image).image,
+                    ),
+                    title: Row(
+                      children: [
+                        Text(data[index].name),
+                        Spacer(),
+                        IconButton(
+                            onPressed: () {
+                              vm.delete(data[index].name);
+                            },
+                            icon: Icon(
+                              Icons.delete,
+                              color: Colors.blue,
+                            )
                         )
-                    )
-                  ],
-                ),
-                children: [
-                  SubList(data: data[index], vm: vm)
-                ],
-              ),
-          itemCount: data.length,
-          separatorBuilder: (context, index) {
-            return Divider();
-          }
+                      ],
+                    ),
+                    children: [
+                      SubList(data: data[index], vm: vm)
+                    ],
+                  ),
+              itemCount: data.length,
+              separatorBuilder: (context, index) => Divider()
+          )
+        ],
       ),
     );
   }
