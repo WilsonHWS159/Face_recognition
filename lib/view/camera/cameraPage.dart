@@ -50,7 +50,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         CameraPreview(vm.cameraController),
         if (vm.painter != null) CustomPaint(painter: vm.painter),
         if (vm.showInputDialog) AlertDialog(
-          content: ListView(
+          content: Column(
             children: [
               Image.memory(
                 imglib.encodePng(vm.inputDialogImage) as Uint8List,

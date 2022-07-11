@@ -127,7 +127,8 @@ class HistoryViewModel extends ChangeNotifier {
 
     while (currentBlocks > 0) {
       print(currentBlocks);
-      final separatedData = Uint8List.fromList([currentBlocks ~/ 256, currentBlocks % 256]) + encodedData.sublist(start, start + size);
+      final end = start + size >= len ? len : start + size;
+      final separatedData = Uint8List.fromList([currentBlocks ~/ 256, currentBlocks % 256]) + encodedData.sublist(start, end);
       await labeledCharacteristic!.write(separatedData);
 
       start += size;

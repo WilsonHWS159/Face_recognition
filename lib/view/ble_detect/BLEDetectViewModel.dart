@@ -2,10 +2,14 @@
 
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:image/image.dart';
 
 import '../../bleModel.dart';
+import '../../faceDetectModel.dart';
 
 class BLEDetectViewModel {
   StreamController<bool> _deviceAllowedController = StreamController<bool>();
@@ -28,7 +32,6 @@ class BLEDetectViewModel {
 
   // Uint8List? imgListData;
 
-  final imgData = List<int>.empty(growable: true);
 
 
   BLEDetectViewModel() {
@@ -94,7 +97,8 @@ class BLEDetectViewModel {
 
     _imageStreaming = true;
 
-    imgData.clear();
+    final imgData = List<int>.empty(growable: true);
+
     // imgListData.clear();
     _listener = characteristics.value.listen((event) {
       final int index = event[0] * 256 + event[1];
@@ -109,6 +113,8 @@ class BLEDetectViewModel {
         print("SUCCESS =================");
         final newImage = Uint8List.fromList(imgData);
         _imgController.add(newImage);
+        
+        detectImage(newImage);
 
         _listener?.cancel();
 
@@ -121,6 +127,47 @@ class BLEDetectViewModel {
     characteristics.setNotifyValue(true);
 
 
-    // characteristics.value;
+  }
+
+  void detectImage(Uint8List image) async {
+    FaceDetectModel _faceDetectModel = FaceDetectModel();
+
+    final inputImage = _createInputImage(image);
+    final result = await _faceDetectModel.detect(inputImage);
+
+    for (final r in result) {
+      print("boundingBox ==========");
+      print(r.boundingBox);
+    }
+  }
+
+  InputImage _createInputImage(Uint8List image) {
+
+    Image img = decodeImage(image)!;
+
+    // final WriteBuffer allBytes = WriteBuffer();
+    // for (Plane plane in cameraImage.planes) {
+    //   allBytes.putUint8List(plane.bytes);
+    // }
+    // final bytes = allBytes.done().buffer.asUint8List();
+    //
+    //
+    //
+    // int width = cameraImage.planes[0].bytesPerRow;
+    final Size imageSize = Size(img.width.toDouble(), img.height.toDouble());
+    // // final Size imageSize = Size(cameraImage.width.toDouble(), cameraImage.height.toDouble());
+    //
+    final InputImageRotation imageRotation = InputImageRotation.Rotation_0deg;
+    //
+    final InputImageFormat inputImageFormat = InputImageFormat.NV21;
+
+    final inputImageData = InputImageData(
+      size: imageSize,
+      imageRotation: imageRotation,
+      inputImageFormat: inputImageFormat,
+      planeData: null,
+    );
+
+    return InputImage.fromBytes(bytes: Uint8List.fromList(img.data), inputImageData: inputImageData);
   }
 }

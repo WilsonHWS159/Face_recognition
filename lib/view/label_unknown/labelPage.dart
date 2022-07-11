@@ -70,7 +70,7 @@ class LabelPage extends StatelessWidget {
               ]
         ),
         floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.search),
+            child: Icon(Icons.add),
             onPressed: () {
               vm.createLabeled(snapshot.data!);
             }

@@ -3,10 +3,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui';
 
+import 'package:face_recognize/mlModel.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:image/image.dart';
 
 import '../../bleModel.dart';
+import '../../detectedDB.dart';
 
 class LabelViewModel {
   StreamController<bool> _deviceAllowedController = StreamController<bool>();
@@ -207,8 +211,29 @@ class LabelViewModel {
     _unlabeledListController.add(fullData);
   }
 
-  void createLabeled(List<UnlabeledData> data) {
+  void createLabeled(List<UnlabeledData> data) async {
+    final mlModel = MLModel();
+    final db = DetectedDB();
 
+    await mlModel.initialize();
+    await db.loadData();
+    // List<PersonData> labeled = List.empty(growable: true);
+
+    for (final d in data) {
+      print("check: ${d.name}");
+      if (!d.selected) continue;
+
+      for (final image in d.images) {
+        if (image.faceImg == null) continue;
+        Image img = decodeImage(image.faceImg!.toList())!;
+        img = copyResize(img, width: 112, height: 112);
+        final result = mlModel.predict(img);
+
+        // ImageAndFeature f = ImageAndFeature("", DateTime.now(), result);
+        print("add person: ${d.name}");
+        db.addPerson(result, d.name, img);
+      }
+    }
   }
 
   void _parseJson() {
