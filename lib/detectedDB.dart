@@ -1,15 +1,12 @@
 
 
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:math';
 import 'dart:typed_data';
-
 
 import 'package:face_recognize/fileRepo.dart';
 
 import 'package:image/image.dart' as imglib;
-import 'package:intl/intl.dart';
 
 
 class ImageAndFeature {
@@ -33,7 +30,7 @@ class PersonData {
 }
 
 class DetectedDB {
-  static const double THRESHOLD = 1.0;
+  static const double THRESHOLD = 0.45;
 
   List<PersonData> historyPersonList = List.empty(growable: true);
 
@@ -68,6 +65,7 @@ class DetectedDB {
 
   }
 
+  /// Add new person to DB
   void addPerson(List data, String name, imglib.Image image) {
 
     final now = DateTime.now();
@@ -157,14 +155,14 @@ class DetectedDB {
   }
 
   PersonData? findClosestFace(List data) {
-    double minDist = 999;
-    double currDist = 999;
+    double minDist = -100;
+    double currDist = -100;
     PersonData? predictedResult;
 
     for (final history in historyPersonList) {
       for (final feature in history.features) {
         currDist = _euclideanDistance(feature.featureVector, data);
-        if (currDist <= THRESHOLD && currDist < minDist) {
+        if (currDist >= THRESHOLD && currDist > minDist) {
           minDist = currDist;
           predictedResult = history;
         }
@@ -175,10 +173,55 @@ class DetectedDB {
   }
 
   double _euclideanDistance(List e1, List e2) {
+
+
+    List<double> normE1 = _normalize(e1);
+    List<double> normE2 = _normalize(e2);
+
+    print("before: ${e1} ${e2}");
+    print("after: ${normE1} ${normE2}");
+
+    int len = normE1.length;
+
     double sum = 0.0;
-    for (int i = 0; i < e1.length; i++) {
-      sum += pow((e1[i] - e2[i]), 2);
+    for (int i = 0; i < len; i++) {
+      // sum += pow((e1[i] - e2[i]), 2);
+      sum += normE1[i] * normE2[i];
     }
-    return sqrt(sum);
+
+
+
+    // sum = sqrt(sum);
+    print("distance: $sum ##########");
+    return sum;
+  }
+
+  List<double> _normalize(List e) {
+    int len = e.length;
+
+    double sum = 0.0;
+    for (int i = 0; i < len; i++) {
+      sum += e[i];
+    }
+
+    double mean = sum / len;
+
+    double sum2 = 0.0;
+
+    for (int i = 0; i < len; i++) {
+      sum2 += e[i] * e[i];//(e[i] - mean) * (e[i] - mean);
+    }
+
+    // sum2 /= len;
+    double sigma = sqrt(sum2);
+
+    List<double> result = new List.empty(growable: true);
+    for (int i = 0; i < len; i++) {
+      result.add(e[i]/sigma);
+    }
+
+    // sum = sqrt(sum);
+    // print("distance: $sum ##########");
+    return result;
   }
 }

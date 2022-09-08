@@ -1,15 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:face_recognize/fileRepo.dart';
-import 'package:face_recognize/view/ble_detect/bleDetectPage.dart';
-import 'package:face_recognize/view/history/historyPage.dart';
-import 'package:face_recognize/view/label_unknown/labelPage.dart';
+import 'package:face_recognize/ui/ble_detect/bleDetectPage.dart';
+import 'package:face_recognize/ui/bluetoothPage.dart';
+import 'package:face_recognize/ui/camera/cameraPage.dart';
+import 'package:face_recognize/ui/history/historyPage.dart';
+import 'package:face_recognize/ui/label/labelPage.dart';
 import 'package:flutter/material.dart';
 
-import 'view/bluetoothPage.dart';
-import 'view/camera/cameraPage.dart';
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
