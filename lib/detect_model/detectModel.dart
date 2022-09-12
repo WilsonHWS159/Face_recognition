@@ -8,16 +8,7 @@ import '../detectedDB.dart';
 import '../faceDetectModel.dart';
 import '../tfLiteModel.dart';
 
-
-class DetectPerson {
-  Face face;
-  Image image;
-  String? name;
-  List feature;
-
-  DetectPerson(this.face, this.image, this.name, this.feature);
-}
-
+/// Detect model's detect flow result data
 class DetectResult {
   bool noPerson;
   List<DetectPerson>? unknownList;
@@ -26,6 +17,14 @@ class DetectResult {
   DetectResult(this.noPerson, {this.unknownList, this.knownList});
 }
 
+class DetectPerson {
+  Face face;
+  Image image;
+  String? name;
+  List<double> feature;
+
+  DetectPerson(this.face, this.image, this.name, this.feature);
+}
 
 class DetectModel {
 
@@ -90,7 +89,7 @@ class DetectModel {
   }
 
 
-  List<dynamic> getFaceFeature(Image image) {
+  List<double> getFaceFeature(Image image) {
     return _tfLiteModel.outputFaceFeature(image);
   }
 

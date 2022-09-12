@@ -58,7 +58,7 @@ class TFLiteModel {
 
   // bool isBusy = false;
 
-  List outputFaceFeature(imglib.Image image, {bool predictAge = true}) {
+  List<double> outputFaceFeature(imglib.Image image, {bool predictAge = true}) {
     // if (isBusy) return;
     print("=========== IN ****** ===========");
     // final now = TimeOfDay.now()
@@ -76,7 +76,7 @@ class TFLiteModel {
 
     print("=========== out size: ${output.shape} =============");
 
-    output = output.reshape([256]);
+    List<double> reshaped = output.reshape([256]) as List<double>;
 
     // this._predictedData = List.from(output);
     print("=========== Success ===========");
@@ -94,7 +94,7 @@ class TFLiteModel {
     //   print("=== age: $ageOutput");
     // }
 
-    return output;
+    return reshaped;
 
     // isBusy = false;
 
