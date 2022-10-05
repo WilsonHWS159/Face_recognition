@@ -58,14 +58,13 @@ class TFLiteModel {
 
   // bool isBusy = false;
 
-  List<double> outputFaceFeature(imglib.Image image, {bool predictAge = true}) {
+  List<double> outputFaceFeature(imglib.Image image, {bool predictAge = false}) {
     // if (isBusy) return;
     print("=========== IN ****** ===========");
     // final now = TimeOfDay.now()
     DateTime now = DateTime.now();
     print("=========== now $now ===========");
 
-    // isBusy = true;
 
     List input = _preProcess(image);
 
@@ -76,7 +75,7 @@ class TFLiteModel {
 
     print("=========== out size: ${output.shape} =============");
 
-    List<double> reshaped = output.reshape([256]) as List<double>;
+    List<double> reshaped = output.reshape([256]).cast<double>();
 
     // this._predictedData = List.from(output);
     print("=========== Success ===========");
@@ -84,19 +83,17 @@ class TFLiteModel {
     DateTime now2 = DateTime.now();
     print("=========== now $now2 ===========");
 
-    // if (predictAge) {
-    //   List ageOutput = List.generate(1, (index) => List.filled(1, 0));
-    //
-    //   List ageInput = _normalize(output);
-    //
-    //   this._ageInterpreter.run(ageInput, ageOutput);
-    //
-    //   print("=== age: $ageOutput");
-    // }
+    if (predictAge) {
+      List ageOutput = List.generate(1, (index) => List.filled(1, 0));
+
+      List ageInput = _normalize(output);
+
+      this._ageInterpreter.run(ageInput, ageOutput);
+
+      print("=== age: $ageOutput");
+    }
 
     return reshaped;
-
-    // isBusy = false;
 
   }
 

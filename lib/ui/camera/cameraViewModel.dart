@@ -112,6 +112,10 @@ class CameraViewModel extends ChangeNotifier {
 
       if (result.unknownList?.isNotEmpty == true) {
         _currentImage = result.unknownList?.first.image;
+      } else if (result.knownList?.isNotEmpty == true) {
+        _currentImage = result.knownList?.first.image;
+      } else {
+        _currentImage = null;
       }
 
     } else {
@@ -121,8 +125,6 @@ class CameraViewModel extends ChangeNotifier {
 
 
     notifyListeners();
-
-    // print("Result: Finish: len: ${result.length}");
   }
 
 }

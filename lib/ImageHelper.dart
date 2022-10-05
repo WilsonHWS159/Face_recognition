@@ -11,44 +11,6 @@ import 'package:image/image.dart';
 /// Image helper class
 class ImageHelper {
 
-  // static InputImage createInputImage(CameraImage cameraImage, int sensorOrientation) {
-  //   final WriteBuffer allBytes = WriteBuffer();
-  //   for (Plane plane in cameraImage.planes) {
-  //     allBytes.putUint8List(plane.bytes);
-  //   }
-  //   final bytes = allBytes.done().buffer.asUint8List();
-  //
-  //   int width = cameraImage.planes[0].bytesPerRow;
-  //   final Size imageSize = Size(width.toDouble(), cameraImage.height.toDouble());
-  //
-  //   final InputImageRotation imageRotation =
-  //       InputImageRotationMethods.fromRawValue(sensorOrientation) ??
-  //           InputImageRotation.Rotation_0deg;
-  //
-  //   final InputImageFormat inputImageFormat =
-  //       InputImageFormatMethods.fromRawValue(cameraImage.format.raw) ??
-  //           InputImageFormat.NV21;
-  //
-  //   final planeData = cameraImage.planes.map(
-  //         (Plane plane) {
-  //       return InputImagePlaneMetadata(
-  //         bytesPerRow: plane.bytesPerRow,
-  //         height: plane.height,
-  //         width: plane.width,
-  //       );
-  //     },
-  //   ).toList();
-  //
-  //   final inputImageData = InputImageData(
-  //     size: imageSize,
-  //     imageRotation: imageRotation,
-  //     inputImageFormat: inputImageFormat,
-  //     planeData: planeData,
-  //   );
-  //
-  //   return InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
-  // }
-
   static InputImage createInputImage(Image image) {
     final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
     final InputImageRotation imageRotation = InputImageRotation.Rotation_0deg;
@@ -63,11 +25,6 @@ class ImageHelper {
 
     return InputImage.fromBytes(bytes: Uint8List.fromList(image.data), inputImageData: inputImageData);
   }
-
-  // static Image cropFace(CameraImage image, Face faceDetected, {int outputSize = 112, double expandRatio = 0.1}) {
-  //   Image convertedImage = convertCameraImage(image);
-  //   return cropImageFace(convertedImage, faceDetected, outputSize: outputSize, expandRatio: expandRatio);
-  // }
 
   static Image cropFace(Image image, Face faceDetected, {int outputSize = 112, double expandRatio = 0.1}) {
     double xExpand = faceDetected.boundingBox.width * expandRatio;
