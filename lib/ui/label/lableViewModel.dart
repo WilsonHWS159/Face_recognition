@@ -3,8 +3,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:ui';
 
+import 'package:face_recognize/detect_model/faceFeatureComparator.dart';
+import 'package:face_recognize/fileRepo.dart';
 import 'package:face_recognize/tfLiteModel.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:image/image.dart';
@@ -39,6 +40,8 @@ class LabelViewModel {
     unlabeled = _unlabeledListController.stream;
 
     connect();
+
+    _loadFromLocal();
   }
 
   Future<void> connect() async {
@@ -213,7 +216,7 @@ class LabelViewModel {
 
   void createLabeled(List<UnlabeledData> data) async {
     final mlModel = TFLiteModel();
-    final db = DetectedDB();
+    final db = DetectedDB(ArcFaceComparator(0.45));
 
     await mlModel.initialize();
     await db.loadData();
@@ -264,6 +267,42 @@ class LabelViewModel {
 
       newData.add(
         UnlabeledData(date, images)
+      );
+    }
+
+    _unlabeledListController.add(newData);
+  }
+
+  void _loadFromLocal() async {
+    final content = await FileRepo().readFile("unlabeled.json");
+
+    if (content.isEmpty) return;
+
+    print("_loadFromLocal: ${content}");
+
+    List<dynamic> jsonArray = json.decode(content);
+
+    List<UnlabeledData> newData = List.empty(growable: true);
+
+    for (final person in jsonArray) {
+      String date = person["firstDate"];
+      List<dynamic> rawImages = person["images"];
+
+      List<UnlabeledImageData> images = List.empty(growable: true);
+      for (final image in rawImages) {
+        String path = image["path"];
+        String time = image["time"];
+
+        // if already exist, use it.
+        final data = UnlabeledImageData(time, path);
+
+        data.faceImg = await FileRepo().readFileAsBytes(path);
+
+        images.add(data);
+      }
+
+      newData.add(
+          UnlabeledData(date, images)
       );
     }
 

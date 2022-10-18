@@ -10,6 +10,7 @@ import 'package:image/image.dart';
 
 import '../../ImageHelper.dart';
 import '../../bleModel.dart';
+import '../../detect_model/faceFeatureComparator.dart';
 import '../../detectedDB.dart';
 import '../../faceDetectModel.dart';
 import '../../tfLiteModel.dart';
@@ -45,7 +46,7 @@ class BLEDetectViewModel {
 
   TFLiteModel _mlModel = TFLiteModel();
 
-  DetectedDB _detectedDB = DetectedDB();
+  DetectedDB _detectedDB = DetectedDB(ArcFaceComparator(0.45));
 
 
   BLEDetectViewModel() {
@@ -200,7 +201,7 @@ class BLEDetectViewModel {
     return InputImage.fromBytes(bytes: Uint8List.fromList(image.data), inputImageData: inputImageData);
   }
 
-  List? _predictFace(Image image) {
+  List<double>? _predictFace(Image image) {
     if (!_mlModel.isInitialized) return null;
 
     return _mlModel.outputFaceFeature(image);

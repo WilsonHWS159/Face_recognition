@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:face_recognize/ui/ble_detect/BLEDetectViewModel.dart';
+import 'package:face_recognize/ui/ble_detect/bleDetectViewModel.dart';
 
 import 'package:flutter/material.dart';
 

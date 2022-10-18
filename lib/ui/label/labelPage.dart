@@ -14,56 +14,58 @@ class LabelPage extends StatelessWidget {
           appBar: AppBar(
             title: Text("Label Page"),
           ),
-          body: Column(
-              children: [
-                StreamBuilder<bool>(
-                    stream: vm.deviceAllowed,
-                    initialData: false,
-                    builder: (c, allowed) {
-                      return Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Row(
-                              children: [
-                                Text("Connected: ${allowed.data}"),
-                                if (allowed.data == true)
-                                  TextButton(
-                                      onPressed: () => vm.startLoadingUnlabeled(),
-                                      child: Text("Sync unlabeled")
-                                  ),
-                              ]
+          body: SingleChildScrollView(
+            child: Column(
+                children: [
+                  StreamBuilder<bool>(
+                      stream: vm.deviceAllowed,
+                      initialData: false,
+                      builder: (c, allowed) {
+                        return Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Row(
+                                children: [
+                                  Text("Connected: ${allowed.data}"),
+                                  if (allowed.data == true)
+                                    TextButton(
+                                        onPressed: () => vm.startLoadingUnlabeled(),
+                                        child: Text("Sync unlabeled")
+                                    ),
+                                ]
+                            )
+                        );
+                      }
+                  ),
+                  Column(
+                    children: snapshot.data!.map((data) => ExpansionTile(
+                      title: Row(
+                        children: [
+                          Text(data.date),
+                          SizedBox(width: 12),
+                          Flexible(
+                            child: TextField(
+                              onChanged: (String value) {
+                                data.name = value;
+                              },
+                            ),
+                            flex: 1,
                           )
-                      );
-                    }
-                    ),
-                Column(
-                  children: snapshot.data!.map((data) => ExpansionTile(
-                    title: Row(
-                      children: [
-                        Text(data.date),
-                        SizedBox(width: 12),
-                        Flexible(
-                          child: TextField(
-                            onChanged: (String value) {
-                              data.name = value;
-                            },
-                          ),
-                          flex: 1,
-                        )
-                      ],
-                    ),
-                    trailing: Checkbox(
-                      value: data.selected,
-                      onChanged: (bool? value) {
-                        data.selected = value!;
-                        vm.dataChanged(snapshot.data!);
-                      },
-                    ),
-                    children: data.images.map((e) => imageListItem(e, c)).toList(),
-                  )).toList(),
-                )
-              ]
-        ),
-        floatingActionButton: FloatingActionButton(
+                        ],
+                      ),
+                      trailing: Checkbox(
+                        value: data.selected,
+                        onChanged: (bool? value) {
+                          data.selected = value!;
+                          vm.dataChanged(snapshot.data!);
+                        },
+                      ),
+                      children: data.images.map((e) => imageListItem(e, c)).toList(),
+                    )).toList(),
+                  )
+                ]
+            ),
+          ),
+          floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
             onPressed: () {
               vm.createLabeled(snapshot.data!);

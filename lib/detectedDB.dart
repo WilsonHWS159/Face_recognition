@@ -1,9 +1,10 @@
 
 
 import 'dart:convert';
-import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:analyzer_plugin/utilities/pair.dart';
+import 'package:face_recognize/detect_model/faceFeatureComparator.dart';
 import 'package:face_recognize/fileRepo.dart';
 
 import 'package:image/image.dart' as imglib;
@@ -12,7 +13,7 @@ import 'package:image/image.dart' as imglib;
 class ImageAndFeature {
   String imagePath;
   DateTime date;
-  List featureVector;
+  List<double> featureVector;
 
   ImageAndFeature(this.imagePath, this.date, this.featureVector);
 }
@@ -30,9 +31,11 @@ class PersonData {
 }
 
 class DetectedDB {
-  static const double THRESHOLD = 0.45;
+  FaceFeatureComparator _comparator;
 
   List<PersonData> historyPersonList = List.empty(growable: true);
+
+  DetectedDB(this._comparator);
 
   Future<void> loadData() async {
     final dataStr = await FileRepo().readFile("saved_data.json");
@@ -47,10 +50,10 @@ class DetectedDB {
 
       for (final feature in featureJson) {
         String path = feature["imagePath"];
-        List vector = feature["featureVector"];
+        List<dynamic> vector = feature["featureVector"];
         DateTime date = DateTime.fromMillisecondsSinceEpoch(feature["date"]);
 
-        features.add(ImageAndFeature(path, date, vector));
+        features.add(ImageAndFeature(path, date, vector.cast()));
       }
 
       final person = PersonData(name, note, features, "123");
@@ -66,16 +69,13 @@ class DetectedDB {
   }
 
   /// Add new person to DB
-  void addPerson(List data, String name, imglib.Image image) {
+  void addPerson(List<double> data, String name, imglib.Image image) {
 
     final now = DateTime.now();
     final path = "image/${name}_${now.millisecondsSinceEpoch}.png";
 
     FileRepo().writeFileAsBytes(path, imglib.encodePng(image) as Uint8List);
 
-    // final newData = PersonData(data, name, path, name);
-
-    // historyPersonList.add(newData);
     bool existPerson = false;
     for (final person in historyPersonList) {
       if (person.name == name) {
@@ -154,74 +154,12 @@ class DetectedDB {
     FileRepo().writeFile("saved_data.json", dataStr);
   }
 
-  PersonData? findClosestFace(List data) {
-    double minDist = -100;
-    double currDist = -100;
-    PersonData? predictedResult;
+  PersonData? findClosestFace(List<double> data) {
 
-    for (final history in historyPersonList) {
-      for (final feature in history.features) {
-        currDist = _euclideanDistance(feature.featureVector, data);
-        if (currDist >= THRESHOLD && currDist > minDist) {
-          minDist = currDist;
-          predictedResult = history;
-        }
-      }
-    }
+    final history = historyPersonList.map((person) =>
+      person.features.map((e) => Pair(person, e.featureVector))
+    ).expand((element) => element).toList();
 
-    return predictedResult;
-  }
-
-  double _euclideanDistance(List e1, List e2) {
-
-
-    List<double> normE1 = _normalize(e1);
-    List<double> normE2 = _normalize(e2);
-
-    print("before: ${e1} ${e2}");
-    print("after: ${normE1} ${normE2}");
-
-    int len = normE1.length;
-
-    double sum = 0.0;
-    for (int i = 0; i < len; i++) {
-      // sum += pow((e1[i] - e2[i]), 2);
-      sum += normE1[i] * normE2[i];
-    }
-
-
-
-    // sum = sqrt(sum);
-    print("distance: $sum ##########");
-    return sum;
-  }
-
-  List<double> _normalize(List e) {
-    int len = e.length;
-
-    double sum = 0.0;
-    for (int i = 0; i < len; i++) {
-      sum += e[i];
-    }
-
-    double mean = sum / len;
-
-    double sum2 = 0.0;
-
-    for (int i = 0; i < len; i++) {
-      sum2 += e[i] * e[i];//(e[i] - mean) * (e[i] - mean);
-    }
-
-    // sum2 /= len;
-    double sigma = sqrt(sum2);
-
-    List<double> result = new List.empty(growable: true);
-    for (int i = 0; i < len; i++) {
-      result.add(e[i]/sigma);
-    }
-
-    // sum = sqrt(sum);
-    // print("distance: $sum ##########");
-    return result;
+    return _comparator.findBest(data, history);
   }
 }

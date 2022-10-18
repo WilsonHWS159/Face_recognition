@@ -1,6 +1,7 @@
 
 
 import 'package:face_recognize/ImageHelper.dart';
+import 'package:face_recognize/detect_model/faceFeatureComparator.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image/image.dart';
 
@@ -21,9 +22,10 @@ class DetectPerson {
   Face face;
   Image image;
   String? name;
+  String? note;
   List<double> feature;
 
-  DetectPerson(this.face, this.image, this.name, this.feature);
+  DetectPerson(this.face, this.image, this.name, this.note, this.feature);
 }
 
 class DetectModel {
@@ -32,11 +34,12 @@ class DetectModel {
 
   FaceDetectModel _faceDetectModel = FaceDetectModel();
 
-  DetectedDB _detectedDB = DetectedDB();
+  DetectedDB _detectedDB;
 
   bool isBusy = false;
 
-  DetectModel(this._tfLiteModel) {
+  DetectModel(this._tfLiteModel, FaceFeatureComparator comparator)
+      : _detectedDB = DetectedDB(comparator) {
     _tfLiteModel.initialize();
     _detectedDB.loadData();
   }
@@ -80,7 +83,7 @@ class DetectModel {
 
       final person = _detectedDB.findClosestFace(feature);
 
-      final data = DetectPerson(face, croppedImage, person?.name, feature);
+      final data = DetectPerson(face, croppedImage, person?.name, person?.note, feature);
 
       person != null ? knownList.add(data) : unknownList.add(data);
     }
@@ -93,7 +96,7 @@ class DetectModel {
     return _tfLiteModel.outputFaceFeature(image);
   }
 
-  addFaceToDB(List<dynamic> feature, String name, Image image) {
+  addFaceToDB(List<double> feature, String name, Image image) {
     _detectedDB.addPerson(feature, name, image);
   }
 }

@@ -37,7 +37,7 @@ dependencies:
 
   flutter_blue_plus:
 
-  google_ml_kit:
+  google_ml_kit: 0.7.3
 
   provider:
 
@@ -68,9 +68,9 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - mobilenetv2.tflite
-    - mobilefacenet.tflite
-    - age_model.tflite
+    - assets/mobilenetv2.tflite
+    - assets/mobilefacenet.tflite
+    - assets/age_model.tflite
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

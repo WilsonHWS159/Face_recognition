@@ -6,9 +6,13 @@ import 'package:face_recognize/ui/camera/faceDetectorPainter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../../detect_model/detectKnownModel.dart';
 import '../../detect_model/detectModel.dart';
 
 import 'package:image/image.dart';
+
+import '../../detect_model/detectUnknownModel.dart';
+import '../../detect_model/faceFeatureComparator.dart';
 
 
 class CameraViewModel extends ChangeNotifier {
@@ -19,7 +23,7 @@ class CameraViewModel extends ChangeNotifier {
 
   FaceDetectorPainter? painter;
 
-  late DetectModel _detectModel;
+  DetectModel _detectModel;
 
   Image? _currentImage;
 
@@ -31,7 +35,12 @@ class CameraViewModel extends ChangeNotifier {
 
   FlutterTts _flutterTts = FlutterTts();
 
-  CameraViewModel(this._camera) {
+  DetectUnknownModel _detectUnknownModel;
+  DetectKnownModel _detectKnownModel = DetectKnownModel();
+
+  CameraViewModel(this._camera) :
+        _detectModel = DetectModel(TFLiteModel(), ArcFaceComparator(0.45)),
+        _detectUnknownModel = DetectUnknownModel(ArcFaceComparator(0.45)) {
     cameraController = CameraController(
       _camera,
       ResolutionPreset.medium,
@@ -41,8 +50,6 @@ class CameraViewModel extends ChangeNotifier {
       notifyListeners();
       startStreaming();
     });
-
-    _detectModel = DetectModel(TFLiteModel());
 
     _flutterTts.setSpeechRate(0.2);
   }
@@ -84,6 +91,9 @@ class CameraViewModel extends ChangeNotifier {
     super.dispose();
   }
 
+  void onStopClick() {
+    _detectUnknownModel.createUnlabeledFile();
+  }
 
   Future _onImageAvailable(CameraImage cameraImage) async {
     if (_detectModel.isBusy) return;
@@ -118,6 +128,8 @@ class CameraViewModel extends ChangeNotifier {
         _currentImage = null;
       }
 
+      _detectUnknownModel.runFlow(result);
+      _detectKnownModel.runFlow(result);
     } else {
       _currentImage = null;
       painter = null;

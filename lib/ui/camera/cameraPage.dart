@@ -39,21 +39,29 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
-      body: ChangeNotifierProvider(
+    return ChangeNotifierProvider(
         create: (context) => viewModel,
-        child: Consumer<CameraViewModel>(builder: (context, vm, _) {
-          return content(vm);
-        })
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          viewModel.onAddClick();
-        },
-        child: const Icon(Icons.add),
-      ),
+        child: Consumer<CameraViewModel>(builder: (context, vm, _) =>
+          Scaffold(
+              appBar: AppBar(title: const Text('Take a picture')),
+              body: content(vm),
+              floatingActionButton: vm.showInputDialog ? null : Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  FloatingActionButton(
+                    onPressed: () => viewModel.onStopClick(),
+                    child: const Icon(Icons.stop),
+                  ),
+                  FloatingActionButton(
+                    onPressed: () =>viewModel.onAddClick(),
+                    child: const Icon(Icons.add),
+                  ),
+                ],
+              )
+          )
+        )
     );
+
   }
 
   Widget content(CameraViewModel vm) {
@@ -80,6 +88,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                 onChanged: (t) => text = t,
               )
             ],
+            mainAxisSize: MainAxisSize.min,
           ),
           actions: <Widget>[
             TextButton(

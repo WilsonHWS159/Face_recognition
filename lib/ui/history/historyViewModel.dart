@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../../bleModel.dart';
+import '../../detect_model/faceFeatureComparator.dart';
 
 
 class HistoryViewData {
@@ -32,7 +33,7 @@ class HistoryViewModel extends ChangeNotifier {
 
   List<HistoryViewData> data = List.empty(growable: true);
 
-  DetectedDB _detectedDB = DetectedDB();
+  DetectedDB _detectedDB = DetectedDB(ArcFaceComparator(0.45));
 
   StreamController<bool> _deviceAllowedController = StreamController<bool>();
 
@@ -151,7 +152,6 @@ class HistoryViewModel extends ChangeNotifier {
               feature.date
           )
         );
-          // images.add(await fileRepo.readFileAsBytes(feature.imagePath));
       }
 
       final viewData = HistoryViewData(
