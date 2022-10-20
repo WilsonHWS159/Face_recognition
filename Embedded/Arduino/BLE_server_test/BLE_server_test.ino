@@ -1,22 +1,49 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <BLE2902.h>
 
 const char *Service_UUID = "180F";
 const char *Characteristic[] = {"2A18", "2A19", "2A1A"};
+
+BLEServer *pServer = NULL;
+BLEService *pService = NULL;
+BLECharacteristic *pCharacteristic[3];
+bool deviceConnected = false;
+
+class ESP32Cam_ServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer *pServer) {
+    deviceConnected = true;
+  }
+  void onDisconnect(BLEServer *pServer) {
+    deviceConnected = false;
+  }
+}
+
+class ESP32Cam_Callbacks : public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic *pCharacteristic) {
+    std::string s = pCharacteristic->getValue();
+    uint16_t len = s.length();
+    if (len) {
+      Serial.print("Received : ");
+      for (uint16_t i = 0; i < len; i++)
+        Serial.print(s[i]);
+      Serial.println();
+    }
+  }
+};
 
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE work!!!");
 
   BLEDevice::init("ESP32_CAM");
-  BLEServer *pServer = BLEDevice::createServer();
-  BLEService *pService = pServer->createService(Service_UUID);
-  BLECharacteristic *pCharacteristic[3];
+  pServer = BLEDevice::createServer();
+  pService = pServer->createService(Service_UUID);
   pCharacteristic[0] = pService->createCharacteristic(Characteristic[0], 0x2);
   pCharacteristic[1] = pService->createCharacteristic(Characteristic[1], 0x7);
   pCharacteristic[2] = pService->createCharacteristic(Characteristic[2], 0x4);
-  for (char i = 0; i < 3; i++)
+  for (uint8_t i = 0; i < 3; i++)
     pCharacteristic[i]->setValue(Characteristic[i]);
 
   pService->start();
@@ -30,6 +57,5 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   delay(2000);
 }
