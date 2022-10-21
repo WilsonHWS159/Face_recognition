@@ -18,7 +18,7 @@ class ESP32Cam_ServerCallbacks : public BLEServerCallbacks {
   void onDisconnect(BLEServer *pServer) {
     deviceConnected = false;
   }
-}
+};
 
 class ESP32Cam_Callbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
@@ -39,10 +39,15 @@ void setup() {
 
   BLEDevice::init("ESP32_CAM");
   pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new ESP32Cam_ServerCallbacks());
   pService = pServer->createService(Service_UUID);
   pCharacteristic[0] = pService->createCharacteristic(Characteristic[0], 0x2);
   pCharacteristic[1] = pService->createCharacteristic(Characteristic[1], 0x7);
   pCharacteristic[2] = pService->createCharacteristic(Characteristic[2], 0x4);
+  pCharacteristic[0]->setCallbacks(new ESP32Cam_Callbacks());
+  pCharacteristic[1]->setCallbacks(new ESP32Cam_Callbacks());
+  pCharacteristic[1]->addDescriptor(new BLE2902());
+  pCharacteristic[2]->addDescriptor(new BLE2902());
   for (uint8_t i = 0; i < 3; i++)
     pCharacteristic[i]->setValue(Characteristic[i]);
 
@@ -54,8 +59,19 @@ void setup() {
   pAdvertising->setMinPreferred(0x12);
   BLEDevice::startAdvertising();
   Serial.println("Characteristic defined! Now you can read it in your phone!");
+
+  
 }
 
 void loop() {
-  delay(2000);
+  if (deviceConnected) {
+    pCharacteristic[1]->setValue("image test");
+    pCharacteristic[1]->notify();
+    Serial.println("test message sent");
+    pCharacteristic[2]->setValue("2A1A test");
+    pCharacteristic[2]->notify();
+    for(;;)
+      delay(1000);
+  }
+  //delay(2000);
 }
